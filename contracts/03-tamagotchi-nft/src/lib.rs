@@ -21,17 +21,17 @@ pub struct Tamagotchi {
 impl Tamagotchi {
     fn current_fed(&mut self) -> u64 {
         let a: u64 =
-            self.fed - (HUNGER_PER_BLOCK as u64) * ((exec::block_height() as u64) - self.fed_block);
+            self.fed - (HUNGER_PER_BLOCK) * ((exec::block_height() as u64) - self.fed_block);
         a
     }
     fn current_entertained(&mut self) -> u64 {
         let b: u64 = self.entertained
-            - (BOREDOM_PER_BLOCK as u64) * ((exec::block_height() as u64) - self.entertained_block);
+            - (BOREDOM_PER_BLOCK) * ((exec::block_height() as u64) - self.entertained_block);
         b
     }
     fn current_slept(&mut self) -> u64 {
-        let c: u64 = self.slept
-            - (ENERGY_PER_BLOCK as u64) * ((exec::block_height() as u64) - self.slept_block);
+        let c: u64 =
+            self.slept - (ENERGY_PER_BLOCK) * ((exec::block_height() as u64) - self.slept_block);
         c
     }
 }
