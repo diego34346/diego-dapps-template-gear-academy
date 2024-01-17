@@ -1,142 +1,109 @@
 #![no_std]
 
 #[allow(unused_imports)]
-use gstd::{exec, msg, prelude::*, ActorId};
+use gstd::{exec, msg, prelude::*};
 use tamagotchi_nft_io::*;
 
-#[derive(Default, Encode, Decode, TypeInfo)]
-#[codec(crate = gstd::codec)]
-#[scale_info(crate = gstd::scale_info)]
-pub struct Tamagotchi {
-    pub name: String,
-    pub date_of_birth: u64,
-    pub owner: ActorId,
-    pub fed: u64,
-    pub fed_block: u64,
-    pub entertained: u64,
-    pub entertained_block: u64,
-    pub slept: u64,
-    pub slept_block: u64,
-}
-impl Tamagotchi {
-    fn current_fed(&mut self) -> u64 {
-        let a: u64 =
-            self.fed - (HUNGER_PER_BLOCK) * ((exec::block_height() as u64) - self.fed_block);
-        a
-    }
-    fn current_entertained(&mut self) -> u64 {
-        let b: u64 = self.entertained
-            - (BOREDOM_PER_BLOCK) * ((exec::block_height() as u64) - self.entertained_block);
-        b
-    }
-    fn current_slept(&mut self) -> u64 {
-        let c: u64 =
-            self.slept - (ENERGY_PER_BLOCK) * ((exec::block_height() as u64) - self.slept_block);
-        c
-    }
-}
 static mut TAMAGOTCHI: Option<Tamagotchi> = None;
 
 #[no_mangle]
 extern fn init() {
     // TODO: 0️⃣ Copy the `init` function from the previous lesson and push changes to the master branch
-    let initname = msg::load().expect("unable to load name");
-    let birthdate = exec::block_height() as u64;
-    let fedblock = exec::block_height() as u64;
-    let entertainedblock = exec::block_height() as u64;
-    let sleptblock = exec::block_height() as u64;
-    let tmg = Tamagotchi {
-        name: initname,
-        date_of_birth: birthdate,
+    let tamagotchi_name: String = msg::load().expect("Error in init message");
+    let block_height = blocks_height();
+    let new_tamagotchi: Tamagotchi = Tamagotchi {
+        name: tamagotchi_name,
+        date_of_birth: block_height,
         owner: msg::source(),
-        fed: 1000,
-        fed_block: fedblock,
+        fed: 5000,
+        fed_block: block_height,
         entertained: 5000,
-        entertained_block: entertainedblock,
-        slept: 2000,
-        slept_block: sleptblock,
+        entertained_block: block_height,
+        rested: 5000,
+        rested_block: block_height,
+        approved_account: None,
     };
     unsafe {
-        TAMAGOTCHI = Some(tmg);
+        TAMAGOTCHI = Some(new_tamagotchi);
     };
+    msg::reply("successful initialization!", 0).expect("error in reply");
 }
 
 #[no_mangle]
 extern fn handle() {
     // TODO: 0️⃣ Copy the `handle` function from the previous lesson and push changes to the master branch
-    let action: TmgAction = msg::load().expect("unable to load action");
-    let tmg = unsafe { TAMAGOTCHI.get_or_insert(Default::default()) };
-    if msg::source() == tmg.owner {
-        match action {
-            TmgAction::Name => {
-                msg::reply(TmgEvent::Name(tmg.name.clone()), 0)
-                    .expect("Error in a reply'tamagotchi::name'");
+    let type_message: TmgAction = msg::load().expect("error in load message");
+
+    let tamagotchi = state_mut();
+
+    match type_message {
+        TmgAction::Name => {
+            let tamagotchi_name = TmgEvent::Name(String::from(&tamagotchi.name));
+            msg::reply(tamagotchi_name, 0).expect("Error in sending tamagotchi name");
+        }
+        TmgAction::Age => {
+            let tamagotchi_age = TmgEvent::Age(blocks_height() - tamagotchi.date_of_birth);
+            msg::reply(tamagotchi_age, 0).expect("Errorin sending tamagotchi age");
+        }
+        TmgAction::Feed => {
+            tamagotchi.feed();
+            msg::reply(TmgEvent::Fed, 0).expect("Error sending tamagotchi variant 'Fed'");
+        }
+        TmgAction::Play => {
+            tamagotchi.play();
+            msg::reply(TmgEvent::Entertained, 0)
+                .expect("Error sending tamagotchi variant 'Entertained'");
+        }
+        TmgAction::Sleep => {
+            tamagotchi.sleep();
+            msg::reply(TmgEvent::Slept, 0).expect("Error sending tamagotchi variant 'Slept'");
+        }
+        TmgAction::Transfer(actor_id) => {
+            let source_id = msg::source();
+            let mut owner_transfered = false;
+            if tamagotchi.owner == source_id {
+                tamagotchi.owner = actor_id;
+                owner_transfered = true;
             }
-            TmgAction::Age => {
-                let age = exec::block_timestamp() - tmg.date_of_birth;
-                msg::reply(TmgEvent::Age(age), 0).expect("Error in a reply'tamagotchi::age'");
+            if tamagotchi.approved_account == Some(source_id) {
+                tamagotchi.owner = actor_id;
+                owner_transfered = true;
             }
-            TmgAction::Feed => {
-                if tmg.current_fed() <= 9000 {
-                    let fed = tmg.fed + FILL_PER_FEED;
-                    msg::reply(TmgEvent::Fed, 0).expect("Error in a reply'tamagotchi::fed'");
-                    tmg.fed = fed;
-                    tmg.fed_block = exec::block_height() as u64;
-                    tmg.entertained = tmg.current_entertained();
-                    tmg.slept = tmg.current_slept();
-                } else {
-                    let fedblock = exec::block_height() as u64;
-                    tmg.fed = 10000;
-                    tmg.fed_block = fedblock;
-                    tmg.entertained = tmg.current_entertained();
-                    tmg.slept = tmg.current_slept();
-                    msg::reply(TmgEvent::Fed, 1).expect("Error in a reply'tamagotchi::fed'");
-                }
-            }
-            TmgAction::Entertain => {
-                if tmg.current_entertained() <= 9000 {
-                    let entertained = tmg.entertained + FILL_PER_ENTERTAINMENT;
-                    msg::reply(TmgEvent::Entertained, 0)
-                        .expect("Error in a reply'tamagotchi::entertained'");
-                    tmg.entertained = entertained;
-                    tmg.entertained_block = exec::block_height() as u64;
-                    tmg.fed = tmg.current_fed();
-                    tmg.slept = tmg.current_slept();
-                } else {
-                    let entertainedblock = exec::block_height() as u64;
-                    tmg.entertained = 10000;
-                    tmg.entertained_block = entertainedblock;
-                    tmg.fed = tmg.current_fed();
-                    tmg.slept = tmg.current_slept();
-                    msg::reply(TmgEvent::Entertained, 1)
-                        .expect("Error in a reply'tamagotchi::entertained'");
-                }
-            }
-            TmgAction::Sleep => {
-                if tmg.current_slept() <= 9000 {
-                    let slept = tmg.slept + FILL_PER_SLEEP;
-                    msg::reply(TmgEvent::Slept, 0).expect("Error in a reply'tamagotchi::slept'");
-                    tmg.slept = slept;
-                    tmg.slept_block = exec::block_height() as u64;
-                    tmg.fed = tmg.current_fed();
-                    tmg.entertained = tmg.current_entertained();
-                } else {
-                    let sleptblock = exec::block_height() as u64;
-                    tmg.slept = 10000;
-                    tmg.slept_block = sleptblock;
-                    tmg.fed = tmg.current_fed();
-                    tmg.entertained = tmg.current_entertained();
-                    msg::reply(TmgEvent::Slept, 1).expect("Error in a reply'tamagotchi::slept'");
-                }
+            if owner_transfered {
+                msg::reply(TmgEvent::Transferred(actor_id), 0).expect("Error in sending reply");
             }
         }
-    } else {
-        panic!("You are not the owner of this tamagotchi");
+        TmgAction::Approve(actor_id) => {
+            let source_id = msg::source();
+            if tamagotchi.owner == source_id {
+                tamagotchi.approved_account = Some(actor_id);
+                msg::reply(TmgEvent::Approved(actor_id), 0).expect("Error in sending reply");
+            }
+        }
+        TmgAction::RevokeApproval => {
+            let source_id = msg::source();
+            if tamagotchi.owner == source_id {
+                tamagotchi.approved_account = None;
+                msg::reply(TmgEvent::ApprovalRevoked, 0).expect("Error in sending reply");
+            }
+        }
     }
 }
+
 #[no_mangle]
 extern fn state() {
     // TODO: 0️⃣ Copy the `handle` function from the previous lesson and push changes to the master branch
-    let tmg = unsafe { TAMAGOTCHI.take().expect("Unexpected error in taking state") };
-    msg::reply(tmg, 0).expect("Failed to share state");
+    msg::reply(state_ref(), 0).expect("Failed to share state");
+}
+
+fn state_ref() -> &'static Tamagotchi {
+    let state = unsafe { TAMAGOTCHI.as_ref() };
+    debug_assert!(state.is_some(), "State is not initialized");
+    unsafe { state.unwrap_unchecked() }
+}
+
+fn state_mut() -> &'static mut Tamagotchi {
+    let state = unsafe { TAMAGOTCHI.as_mut() };
+    debug_assert!(state.is_some(), "State is not initialized");
+    unsafe { state.unwrap_unchecked() }
 }
