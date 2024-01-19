@@ -210,7 +210,7 @@ impl Tamagotchi {
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum TmgAction {
-    // TODO: 0️⃣ Copy actions from previous lesson and push changes to the master branch
+    
     Name,
     Age,
     Feed,
