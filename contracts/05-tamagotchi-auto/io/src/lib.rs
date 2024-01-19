@@ -210,7 +210,6 @@ impl Tamagotchi {
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum TmgAction {
-    
     Name,
     Age,
     Feed,
