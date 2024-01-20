@@ -21,7 +21,7 @@ pub const ADDRESS_SCROW: ActorId = ActorId::new([
 fn init_escrow_factory() {
     let system = System::new();
     let escrow_code_id =
-        system.submit_code("../target/wasm32-unknown-unknown/release/escrow.opt.wasm");
+        system.submit_code("../target/wasm32-unknown-unknown/release/escrow_factory.opt.wasm");
     let escrow_factory = Program::current(&system);
     let res = escrow_factory.send(100, escrow_code_id);
     assert!(!res.main_failed());
