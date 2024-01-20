@@ -1514,6 +1514,59 @@ dependencies = [
 ]
 
 [[package]]
+name = "escrow"
+version = "0.3.3"
+dependencies = [
+ "escrow-io",
+ "gclient",
+ "gear-wasm-builder",
+ "gmeta",
+ "gstd",
+ "gtest",
+ "hex-literal",
+ "tokio",
+]
+
+[[package]]
+name = "escrow-factory"
+version = "0.3.3"
+dependencies = [
+ "escrow-factory-io",
+ "escrow-io",
+ "gear-wasm-builder",
+ "gstd",
+ "gtest",
+ "hex-literal",
+]
+
+[[package]]
+name = "escrow-factory-io"
+version = "0.3.3"
+dependencies = [
+ "escrow-io",
+ "gmeta",
+ "gstd",
+]
+
+[[package]]
+name = "escrow-io"
+version = "0.3.3"
+dependencies = [
+ "gmeta",
+ "gstd",
+]
+
+[[package]]
+name = "escrow-state"
+version = "0.3.3"
+dependencies = [
+ "escrow-io",
+ "gear-wasm-builder",
+ "gmeta",
+ "gstd",
+]
+
+[[package]]
 name = "event-listener"
 version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2295,8 +2348,19 @@ source = "git+https://github.com/gear-tech/gear?tag=v1.0.2#d02d306f97c2d60c1a878
 dependencies = [
  "blake2-rfc",
  "derive_more",
+ "gmeta-codegen",
  "hex",
  "scale-info",
+]
+
+[[package]]
+name = "gmeta-codegen"
+version = "1.0.2"
+source = "git+https://github.com/gear-tech/gear?tag=v1.0.2#d02d306f97c2d60c1a8786366a56d8c02264f4e1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -2505,6 +2569,12 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "hex-literal"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
 name = "hmac"
@@ -5670,6 +5740,7 @@ version = "0.3.3"
 dependencies = [
  "gmeta",
  "gstd",
+ "tamagotchi-auto-io",
 ]
 
 [[package]]
@@ -5687,6 +5758,8 @@ version = "0.3.3"
 dependencies = [
  "gmeta",
  "gstd",
+ "sharded-fungible-token-io",
+ "store-io",
 ]
 
 [[package]]
@@ -5748,6 +5821,8 @@ version = "0.3.3"
 dependencies = [
  "gmeta",
  "gstd",
+ "sharded-fungible-token-io",
+ "store-io",
 ]
 
 [[package]]

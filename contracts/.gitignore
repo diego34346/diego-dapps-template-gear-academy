@@ -1,4 +1,6 @@
 .binpath
 .DS_Store
 .vscode
-target
+target/*
+# Excepto este archivo
+!target/wasm32-unknown-unknown/release/escrow.opt.wasm
