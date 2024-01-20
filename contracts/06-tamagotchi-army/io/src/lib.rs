@@ -53,7 +53,7 @@ impl TamagotchiFactory {
             },
             0,
         )
-        .expect("Error during a reply `FactoryEvent::ProgramCreated`");
+        .expect(" Error during a reply `FactoryEvent::ProgramCreated`");
     }
 
     pub async fn get_tamagotchi_name(&self, tamagotchi_id: TamagotchiId) {
