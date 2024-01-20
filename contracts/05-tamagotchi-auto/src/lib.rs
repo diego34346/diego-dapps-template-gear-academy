@@ -13,12 +13,12 @@ static mut GAS_RESERVATIONS_HANDLERS: Option<GasReservationHandlers> = None;
 #[no_mangle]
 extern fn init() {
     // TODO: 0️⃣ Copy the `init` function from the previous lesson and push changes to the master branch
-    let tamagotchi_name: String = msg::load().expect("Error in init message");
+    let TmgInit { owner, name } = msg::load().expect("Error in init message");
     let block_height = blocks_height();
     let new_tamagotchi: Tamagotchi = Tamagotchi {
-        name: tamagotchi_name,
+        name,
         date_of_birth: block_height,
-        owner: msg::source(),
+        owner,
         fed: 5000,
         fed_block: block_height,
         entertained: 5000,

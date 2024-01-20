@@ -1,0 +1,21 @@
+[package]
+name = "escrow-factory"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+gstd = { workspace = true, features = ["debug"] }
+escrow-factory-io.workspace = true
+escrow-io.workspace = true
+hex-literal.workspace = true
+
+[build-dependencies]
+gear-wasm-builder.workspace = true
+escrow-factory-io.workspace = true
+escrow-io.workspace = true
+
+[dev-dependencies]
+gtest.workspace = true
+escrow-io.workspace = true
+hex-literal.workspace = true

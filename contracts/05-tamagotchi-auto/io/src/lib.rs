@@ -99,7 +99,7 @@ impl Tamagotchi {
     }
 
     pub async fn buy_attribute(&mut self, store_id: ActorId, attribute_id: AttributeId) {
-        let response = msg::send_for_reply_as::<_, StoreEvent>(
+        let store_response = msg::send_for_reply_as::<_, StoreEvent>(
             store_id,
             StoreAction::BuyAttribute { attribute_id },
             0,
@@ -108,7 +108,24 @@ impl Tamagotchi {
         .expect("Error in sending a message `FTokenAction::Message`")
         .await
         .expect("Error in decoding 'FTokenEvent'");
-        msg::reply(response, 0).expect("Error in sending reply 'StoreEvent' event");
+
+        if let StoreEvent::CompletePrevTx { attribute_id } = store_response {
+            msg::reply(TmgEvent::CompletePrevPurchase(attribute_id), 0)
+                .expect("Error sending reply");
+            return;
+        }
+
+        let StoreEvent::AttributeSold { success } = store_response else {
+            msg::reply(TmgEvent::ErrorDuringPurchase, 0).expect("Error sending reply");
+            return;
+        };
+
+        if success {
+            msg::reply(TmgEvent::ErrorDuringPurchase, 0).expect("Error sending reply");
+            return;
+        }
+
+        msg::reply(TmgEvent::AttributeBought(attribute_id), 0).expect("Error in sending reply");
     }
 
     pub async fn approve_tokens(&mut self, account: ActorId, amount: u128) {
@@ -210,11 +227,12 @@ impl Tamagotchi {
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum TmgAction {
-    Name,
-    Age,
-    Feed,
-    Play,
-    Sleep,
+    // TODO: 0️⃣ Copy actions from previous lesson and push changes to the master branch
+    Name,  //
+    Age,   //
+    Feed,  //
+    Play,  //
+    Sleep, //
     Transfer(ActorId),
     Approve(ActorId),
     RevokeApproval,
@@ -235,7 +253,7 @@ pub enum TmgAction {
     },
 }
 
-#[derive(Encode, Decode, TypeInfo)]
+#[derive(Encode, Decode, TypeInfo, Eq, PartialEq)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum TmgEvent {
@@ -261,6 +279,14 @@ pub enum TmgEvent {
     AllGood, // extra field to return if the user check state
     MakeReservation,
     GasReserved,
+}
+
+#[derive(Encode, Decode, TypeInfo)]
+#[codec(crate = gstd::codec)]
+#[scale_info(crate = gstd::scale_info)]
+pub struct TmgInit {
+    pub owner: ActorId,
+    pub name: String,
 }
 
 pub struct ProgramMetadata;
