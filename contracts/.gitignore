@@ -2,3 +2,6 @@
 .DS_Store
 .vscode
 target
+# Excepto este archivo
+   !escrow_factory.opt.wasm
+   ```
