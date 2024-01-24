@@ -52,18 +52,18 @@ fn owning_test() {
 
     let target_actor_id = ActorId::new([2; 32]);
 
-    program.send(2, TmgAction::Approve(target_actor_id.clone()));
+    program.send(2, TmgAction::Approve(target_actor_id));
     let expected_approval_log = Log::builder()
         .dest(2)
-        .payload(TmgEvent::Approved(target_actor_id.clone()));
+        .payload(TmgEvent::Approved(target_actor_id));
     assert!(!res_init.contains(&expected_approval_log));
 
-    let res_transfer = program.send(2, TmgAction::Transfer(target_actor_id.clone()));
+    let res_transfer = program.send(2, TmgAction::Transfer(target_actor_id));
     assert!(!res_transfer.main_failed());
 
     let res_state = program.send(2, TmgAction::Name);
     let expected_owner_log = Log::builder()
         .dest(2)
-        .payload(TmgEvent::Transferred(target_actor_id.clone()));
+        .payload(TmgEvent::Transferred(target_actor_id));
     assert!(!res_state.contains(&expected_owner_log));
 }
