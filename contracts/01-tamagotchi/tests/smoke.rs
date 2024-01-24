@@ -4,7 +4,9 @@ use gtest::{Program, System};
 fn smoke_test() {
     let sys = System::new();
     sys.init_logger();
-    let _program = Program::current(&sys);
+    let program = Program::current(&sys);
 
-    // TODO: 8️⃣ Test the program initialization and message handling
+    let init_name = "InitialTamagotchiName".to_string();
+    let res_init = program.send(0, init_name.clone());
+    assert!(!res_init.main_failed());
 }
