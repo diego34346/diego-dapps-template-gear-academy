@@ -1,6 +1,6 @@
+use gstd::ActorId;
 use gtest::{Log, Program, System};
 use tamagotchi_nft_io::{TmgAction, TmgEvent};
-use gstd::ActorId;
 
 #[test]
 fn owning_test() {
