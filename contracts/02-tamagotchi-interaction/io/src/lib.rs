@@ -2,6 +2,7 @@
 
 use codec::{Decode, Encode};
 use gmeta::{In, InOut, Metadata, Out};
+#[allow(unused_imports)]
 use gstd::{exec, msg, prelude::*, ActorId};
 use scale_info::TypeInfo;
 
