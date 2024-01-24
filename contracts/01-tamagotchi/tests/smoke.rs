@@ -11,7 +11,7 @@ fn smoke_test() {
     let res_init = program.send(0, init_name.clone());
     assert!(!res_init.main_failed());
 
-    program.send(2, String::from("Diego".to_string()));
+    program.send(2, String::from("Diego"));
     let res = program.send(2, TmgAction::Name);
     let expected_log = Log::builder()
         .dest(2)
