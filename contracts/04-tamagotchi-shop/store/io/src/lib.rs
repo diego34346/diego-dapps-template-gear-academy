@@ -7,7 +7,7 @@ use gstd::{
     ActorId,
 };
 
-pub type AttributeId = u32;
+pub type AttributeId = u128;
 pub type Price = u128;
 pub type TamagotchiId = ActorId;
 pub type TransactionId = u64;
