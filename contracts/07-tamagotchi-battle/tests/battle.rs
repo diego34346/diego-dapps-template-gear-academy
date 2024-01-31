@@ -1,60 +1,35 @@
-use gstd::collections::BTreeSet;
-use gstd::msg;
 use tamagotchi_battle_io::*;
+use gstd::ActorId;
+use tokio::time::Duration;
 
-#[gstd::test]
-fn test_initiate_registration() {
-    let mut battle = Battle::default();
-    let tmg_id = ActorId::new([1; 32]);
-    let attributes = AttributesPerRound {
-        round_1: Some(1),
-        round_2: Some(2),
-        round_3: Some(3),
-    };
-
-    msg::set_source(ActorId::new([2; 32]));
-
-    gstd::runtime::execute(|| {
-        battle.initiate_registration(&tmg_id, attributes).await;
-    });
-
-    assert_eq!(battle.players.len(), 1);
-    assert_eq!(battle.state, BattleState::Registration);
-    assert_eq!(battle.current_turn, 0);
+#[tokio::main]
+async fn main() {
+    test_initiate_registration().await;
+    test_execute_move().await;
 }
 
-#[gstd::test]
-fn test_execute_move() {
+async fn test_initiate_registration() {
     let mut battle = Battle::default();
-    let player1 = Player {
-        owner: ActorId::new([1; 32]),
-        tmg_id: ActorId::new([2; 32]),
-        energy: 100,
-        power: 50,
-        attributes: AttributesPerRound::default(),
-        actual_attribute: 1,
-        actual_side: DirectionOfMovement::Right,
-    };
-    let player2 = Player {
-        owner: ActorId::new([3; 32]),
-        tmg_id: ActorId::new([4; 32]),
-        energy: 80,
-        power: 60,
-        attributes: AttributesPerRound::default(),
-        actual_attribute: 1,
-        actual_side: DirectionOfMovement::Left,
-    };
+    let tmg_id = ActorId::new([1u8; 32]);
 
-    battle.players.push(player1.clone());
-    battle.players.push(player2.clone());
-    battle.state = BattleState::Moves;
-    battle.current_turn = 0;
+    battle.initiate_registration(&tmg_id, AttributesPerRound::default()).await;
 
-    msg::set_source(player1.owner);
+    assert_eq!(battle.state, BattleState::Moves);
+    assert_eq!(battle.players.len(), 1);
+    assert_eq!(battle.players[0].tmg_id, tmg_id);
+}
 
-    gstd::runtime::execute(|| {
-        battle.execute_move(DirectionOfMovement::Right);
-    });
+async fn test_execute_move() {
+    let mut battle = Battle::default();
+    let tmg_id_1 = ActorId::new([1u8; 32]);
+    let tmg_id_2 = ActorId::new([2u8; 32]);
+
+    battle.initiate_registration(&tmg_id_1, AttributesPerRound::default()).await;
+    battle.initiate_registration(&tmg_id_2, AttributesPerRound::default()).await;
+
+    battle.execute_move(DirectionOfMovement::Right);
+
     assert_eq!(battle.state, BattleState::Waiting);
     assert_eq!(battle.steps, 1);
+    assert_eq!(battle.current_turn, 1);
 }

@@ -14,7 +14,7 @@ use tamagotchi_store_io::{AttributeId, StoreAction, StoreEvent};
 #[derive(PartialEq, Debug, Default, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
-enum BattleState {
+pub enum BattleState {
     #[default]
     Registration,
     Moves,
