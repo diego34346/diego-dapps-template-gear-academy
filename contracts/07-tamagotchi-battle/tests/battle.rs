@@ -1,5 +1,5 @@
-use tamagotchi_battle_io::*;
 use gstd::ActorId;
+use tamagotchi_battle_io::*;
 use tokio::time::Duration;
 
 #[tokio::main]
@@ -12,7 +12,9 @@ async fn test_initiate_registration() {
     let mut battle = Battle::default();
     let tmg_id = ActorId::new([1u8; 32]);
 
-    battle.initiate_registration(&tmg_id, AttributesPerRound::default()).await;
+    battle
+        .initiate_registration(&tmg_id, AttributesPerRound::default())
+        .await;
 
     assert_eq!(battle.state, BattleState::Moves);
     assert_eq!(battle.players.len(), 1);
@@ -24,8 +26,12 @@ async fn test_execute_move() {
     let tmg_id_1 = ActorId::new([1u8; 32]);
     let tmg_id_2 = ActorId::new([2u8; 32]);
 
-    battle.initiate_registration(&tmg_id_1, AttributesPerRound::default()).await;
-    battle.initiate_registration(&tmg_id_2, AttributesPerRound::default()).await;
+    battle
+        .initiate_registration(&tmg_id_1, AttributesPerRound::default())
+        .await;
+    battle
+        .initiate_registration(&tmg_id_2, AttributesPerRound::default())
+        .await;
 
     battle.execute_move(DirectionOfMovement::Right);
 
