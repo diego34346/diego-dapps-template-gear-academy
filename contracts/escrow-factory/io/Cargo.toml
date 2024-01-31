@@ -1,11 +1,10 @@
 [package]
-name = "tamagotchi-auto-io"
+name = "escrow-factory-io"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
 
 [dependencies]
 gmeta.workspace = true
-gstd.workspace = true
-sharded-fungible-token-io.workspace = true
-store-io.workspace = true
+gstd = { workspace = true, features = ["debug"] }
+escrow-io.workspace = true
