@@ -197,6 +197,7 @@ impl Battle {
         }
     }
 
+    #[allow(dead_code)]
     async fn fetch_attributes(
         tmg_store_id: &ActorId,
         tmg_id: &TamagotchiId,
@@ -244,7 +245,7 @@ impl Battle {
         );
         let turn = self.current_turn as usize;
 
-        let next_turn = ((turn + 1) % 2) as usize;
+        let next_turn = (turn + 1) % 2;
 
         let mut player = self.players[turn].clone();
 
