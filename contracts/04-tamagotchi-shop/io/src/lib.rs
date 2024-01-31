@@ -5,8 +5,7 @@ use gmeta::{In, InOut, Metadata, Out};
 #[allow(unused_imports)]
 use gstd::{exec, msg, prelude::*, ActorId};
 use scale_info::TypeInfo;
-use store_io::{TransactionId, AttributeId};
-
+use store_io::{AttributeId, TransactionId};
 
 #[derive(Default, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
@@ -51,8 +50,6 @@ pub enum TmgAction {
         attribute_id: AttributeId,
     },
 }
-
-
 
 #[derive(Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]

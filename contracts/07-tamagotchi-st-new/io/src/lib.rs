@@ -3,7 +3,11 @@
 use gmeta::{In, InOut, Metadata as GMetadata, Out};
 use sharded_fungible_token_io::{FTokenAction, FTokenEvent, LogicAction};
 
-use gstd::{collections::{BTreeMap, BTreeSet},prelude::*,ActorId,msg,exec
+use gstd::{
+    collections::{BTreeMap, BTreeSet},
+    exec, msg,
+    prelude::*,
+    ActorId,
 };
 
 pub type AttributeId = u32;
@@ -11,16 +15,12 @@ pub type Price = u128;
 pub type TamagotchiId = ActorId;
 pub type TransactionId = u64;
 
-
-
-
-
 #[derive(Default, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub struct AttributeStore {
     pub admin: ActorId,
-    pub ft_contract_id: ActorId,    
+    pub ft_contract_id: ActorId,
     pub cost_to_upgrade_weapons: Price,
     pub attributes: BTreeMap<AttributeId, (AttrMetadata, Price)>,
     pub improvable_attributes: BTreeMap<AttributeId, AttributeId>,
@@ -28,7 +28,6 @@ pub struct AttributeStore {
     pub transaction_id: TransactionId,
     pub transactions: BTreeMap<TamagotchiId, (TransactionId, AttributeId)>,
 }
-
 
 #[derive(Encode, Decode, Clone, TypeInfo, Debug)]
 #[codec(crate = gstd::codec)]
@@ -43,8 +42,8 @@ pub struct AttrMetadata {
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub struct StoreInit {
-    pub ft_contract_id: ActorId, 
-    pub cost_to_upgrade_weapons: Price
+    pub ft_contract_id: ActorId,
+    pub cost_to_upgrade_weapons: Price,
 }
 
 #[derive(Encode, Decode, TypeInfo, Debug)]
@@ -62,7 +61,7 @@ pub enum StoreAction {
         attribute_id: AttributeId,
     },
     UpgradeAttribute {
-        attribute_id: AttributeId  
+        attribute_id: AttributeId,
     },
     GetAttributes {
         tamagotchi_id: TamagotchiId,
@@ -73,7 +72,6 @@ pub enum StoreAction {
     RemoveTx {
         tamagotchi_id: TamagotchiId,
     },
-    
 }
 
 #[derive(Encode, Decode, TypeInfo)]
@@ -88,7 +86,7 @@ pub enum StoreEvent {
     FtContractIdSet { ft_contract_id: ActorId },
     TxRemoved { tamagotchi_id: ActorId },
     BuyTheAttributeToUpdateIt,
-    AttributeCannotBeImproved
+    AttributeCannotBeImproved,
 }
 
 impl AttributeStore {
@@ -109,15 +107,16 @@ impl AttributeStore {
         {
             panic!("Attribute with that ID already exists");
         }
-        
+
         if can_upgrade {
-            self.improvable_attributes.insert(attribute_id, attribute_upgrade_id);
+            self.improvable_attributes
+                .insert(attribute_id, attribute_upgrade_id);
         }
 
         msg::reply(StoreEvent::AttributeCreated { attribute_id }, 0)
             .expect("Error in sending a reply `StoreEvent::AttributeCreated");
     }
-    
+
     pub async fn purchase_attribute(&mut self, attribute_id: AttributeId) {
         let (transaction_id, attribute_id) = if let Some((transaction_id, prev_attribute_id)) =
             self.transactions.get(&msg::source())
@@ -178,32 +177,29 @@ impl AttributeStore {
         }
         false
     }
-    
+
     pub async fn upgrade_attribute(&mut self, attribute_id: AttributeId) {
         let caller = msg::source();
-        
+
         let Some(&upgrade_id) = self.improvable_attributes.get(&attribute_id) else {
-            msg::reply(StoreEvent::AttributeCannotBeImproved, 0)
-                .expect("Error in sending reply");
-            return;  
+            msg::reply(StoreEvent::AttributeCannotBeImproved, 0).expect("Error in sending reply");
+            return;
         };
-        
+
         if !self.owners.contains_key(&caller) {
-            msg::reply(StoreEvent::BuyTheAttributeToUpdateIt, 0)
-                .expect("Error sendig reply");
+            msg::reply(StoreEvent::BuyTheAttributeToUpdateIt, 0).expect("Error sendig reply");
             return;
         }
-        
+
         let tamagotchi_attributes = self.owners.get(&caller).unwrap();
         if !tamagotchi_attributes.contains(&attribute_id) {
-            msg::reply(StoreEvent::BuyTheAttributeToUpdateIt, 0)
-                .expect("Error sendig reply");
+            msg::reply(StoreEvent::BuyTheAttributeToUpdateIt, 0).expect("Error sendig reply");
             return;
-        } 
-        
+        }
+
         let (transaction_id, attribute_id) = if let Some((transaction_id, prev_attribute_id)) =
             self.transactions.get(&msg::source())
-        { 
+        {
             if attribute_id != *prev_attribute_id {
                 msg::reply(
                     StoreEvent::CompletePrevTx {
@@ -222,24 +218,24 @@ impl AttributeStore {
                 .insert(msg::source(), (current_transaction_id, attribute_id));
             (current_transaction_id, attribute_id)
         };
-        
-        let result = self.apply_attribute_upgrade(transaction_id, attribute_id).await;
-        
+
+        let result = self
+            .apply_attribute_upgrade(transaction_id, attribute_id)
+            .await;
+
         if result {
-            self.owners
-                .entry(caller)
-                .and_modify(|attributes| {
-                    attributes.remove(&attribute_id);
-                    attributes.insert(upgrade_id);
-                });
+            self.owners.entry(caller).and_modify(|attributes| {
+                attributes.remove(&attribute_id);
+                attributes.insert(upgrade_id);
+            });
         }
-        
+
         msg::reply(StoreEvent::AttributeUpgrade { success: result }, 0)
             .expect("Error in sending a reply `StoreEvent::AttributeSold`");
     }
-    
+
     pub async fn apply_attribute_upgrade(
-        &mut self, 
+        &mut self,
         transaction_id: TransactionId,
         attribute_id: AttributeId,
     ) -> bool {
@@ -263,7 +259,7 @@ impl AttributeStore {
         }
         false
     }
-    
+
     pub fn can_upgrade_attribute() -> bool {
         false
     }
@@ -335,13 +331,6 @@ pub async fn transfer_tokens(
         _ => Err(()),
     }
 }
-
-
-
-
-
-
-
 
 pub struct ProgramMetadata;
 

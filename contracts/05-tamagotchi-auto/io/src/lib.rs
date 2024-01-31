@@ -251,7 +251,7 @@ pub enum TmgAction {
         reservation_amount: u64,
         duration: u32,
     },
-    TmgInfo
+    TmgInfo,
 }
 
 #[derive(Encode, Decode, TypeInfo, Eq, PartialEq)]
@@ -280,7 +280,7 @@ pub enum TmgEvent {
     AllGood, // extra field to return if the user check state
     MakeReservation,
     GasReserved,
-    Owner(ActorId)
+    Owner(ActorId),
 }
 
 #[derive(Encode, Decode, TypeInfo)]

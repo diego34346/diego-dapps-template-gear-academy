@@ -4,10 +4,9 @@
 use codec::{Decode, Encode};
 #[allow(unused_imports)]
 use gstd::{exec, msg, prelude::*, ActorId};
-use tamagotchi_nft_io::*;
-use store_io::{TransactionId, AttributeId, StoreAction, StoreEvent};
 use sharded_fungible_token_io::{FTokenAction, FTokenEvent, LogicAction};
-
+use store_io::{AttributeId, StoreAction, StoreEvent, TransactionId};
+use tamagotchi_nft_io::*;
 
 pub const HUNGER_PER_BLOCK: u64 = 1;
 pub const BOREDOM_PER_BLOCK: u64 = 2;
@@ -18,43 +17,39 @@ pub const FILL_PER_SLEEP: u64 = 1000;
 
 static mut TAMAGOTCHI: Option<Tamagotchi> = None;
 
-impl Tamagotchi {   
+impl Tamagotchi {
     pub fn sleep(&mut self) {
         let blocks_height = blocks_height();
         let updated_rested = updated_field_value(
             self.rested,
             self.rested_block,
             ENERGY_PER_BLOCK,
-            blocks_height
+            blocks_height,
         );
         self.rested = update_field(updated_rested, FILL_PER_SLEEP);
-        self.rested_block = blocks_height;  
+        self.rested_block = blocks_height;
     }
-    
+
     pub fn feed(&mut self) {
         let blocks_height = blocks_height();
-        let updated_feed = updated_field_value(
-            self.fed,
-            self.fed_block,
-            HUNGER_PER_BLOCK,
-            blocks_height
-        );
+        let updated_feed =
+            updated_field_value(self.fed, self.fed_block, HUNGER_PER_BLOCK, blocks_height);
         self.fed = update_field(updated_feed, FILL_PER_FEED);
         self.fed_block = blocks_height;
     }
-    
+
     pub fn play(&mut self) {
         let blocks_height = blocks_height();
         let updated_entertainer = updated_field_value(
             self.entertained,
             self.entertained_block,
             BOREDOM_PER_BLOCK,
-            blocks_height
+            blocks_height,
         );
         self.entertained = update_field(updated_entertainer, FILL_PER_ENTERTAINMENT);
-        self.entertained_block = blocks_height;  
+        self.entertained_block = blocks_height;
     }
-    
+
     pub fn is_owner_or_approved(&self, user: &ActorId) -> bool {
         if self.owner == *user {
             return true;
@@ -64,25 +59,27 @@ impl Tamagotchi {
         }
         false
     }
-    
+
     pub async fn buy_attribute(&mut self, store_id: ActorId, attribute_id: AttributeId) {
         let response = msg::send_for_reply_as::<_, StoreEvent>(
             store_id,
-            StoreAction::BuyAttribute {
-                attribute_id
-            },
+            StoreAction::BuyAttribute { attribute_id },
             0,
             0,
         )
         .expect("Error in sending a message `FTokenAction::Message`")
         .await
         .expect("Error in decoding 'FTokenEvent'");
-        msg::reply(response, 0)
-            .expect("Error in sending reply 'StoreEvent' event");
+        msg::reply(response, 0).expect("Error in sending reply 'StoreEvent' event");
     }
-    
+
     pub async fn approve_tokens(&mut self, account: ActorId, amount: u128) {
-        let (transaction_id, account, amount) = if let Some((prev_transaction_id, prev_account, prev_amount)) = self.approve_transaction {
+        let (transaction_id, account, amount) = if let Some((
+            prev_transaction_id,
+            prev_account,
+            prev_amount,
+        )) = self.approve_transaction
+        {
             if prev_account != account && prev_amount != amount {
                 msg::reply(TmgEvent::ApprovalError, 0)
                     .expect("Error in sending a reply `TmgEvent::ApprovalError`");
@@ -95,11 +92,11 @@ impl Tamagotchi {
             self.approve_transaction = Some((current_transaction_id, account, amount));
             (current_transaction_id, account, amount)
         };
-        
+
         let result_transaction = msg::send_for_reply_as::<_, FTokenEvent>(
             self.ft_contract_id,
             FTokenAction::Message {
-                transaction_id: transaction_id,
+                transaction_id,
                 payload: LogicAction::Approve {
                     approved_account: account,
                     amount,
@@ -111,19 +108,15 @@ impl Tamagotchi {
         .expect("Error in sending a message `FTokenAction::Message`")
         .await
         .expect("Error in decoding 'FTokenEvent'");
-        
+
         if result_transaction != FTokenEvent::Ok {
             msg::reply(TmgEvent::ApprovalError, 0)
                 .expect("Error in sending a reply `TmgEvent::ApprovalError`");
             return;
         }
-        
-        let response = TmgEvent::TokensApproved { 
-            account, 
-            amount
-        };
-        msg::reply(response, 0)
-            .expect("Error in sending a reply `TmgEvent::ApprovalError`");
+
+        let response = TmgEvent::TokensApproved { account, amount };
+        msg::reply(response, 0).expect("Error in sending a reply `TmgEvent::ApprovalError`");
     }
 }
 
@@ -223,12 +216,16 @@ extern fn handle() {
         }
         TmgAction::SetFTokenContract(ft_contract_id) => {
             tmg.ft_contract_id = ft_contract_id;
-            msg::reply(TmgEvent::FTokenContractSet, 0).expect("Error setting Fungible Token contract");
+            msg::reply(TmgEvent::FTokenContractSet, 0)
+                .expect("Error setting Fungible Token contract");
         }
         TmgAction::ApproveTokensForStore { store_id, amount } => {
             tmg.approve_tokens(&store_id, amount).await;
         }
-        TmgAction::BuyAttributeFromStore { store_id, attribute_id } => {
+        TmgAction::BuyAttributeFromStore {
+            store_id,
+            attribute_id,
+        } => {
             tmg.buy_attribute_from_store(store_id, attribute_id).await;
         }
     }
