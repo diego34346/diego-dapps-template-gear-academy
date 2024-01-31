@@ -12,19 +12,15 @@ fn test_initiate_registration() {
         round_3: Some(3),
     };
 
-    // Mock the source actor ID for the test
     msg::set_source(ActorId::new([2; 32]));
 
-    // Perform the registration
     gstd::runtime::execute(|| {
         battle.initiate_registration(&tmg_id, attributes).await;
     });
 
-    // Verify the expected outcome
     assert_eq!(battle.players.len(), 1);
     assert_eq!(battle.state, BattleState::Registration);
     assert_eq!(battle.current_turn, 0);
-    // Add more assertions based on your specific logic
 }
 
 #[gstd::test]
@@ -54,16 +50,11 @@ fn test_execute_move() {
     battle.state = BattleState::Moves;
     battle.current_turn = 0;
 
-    // Mock the source actor ID for the test
     msg::set_source(player1.owner);
 
-    // Perform the move
     gstd::runtime::execute(|| {
         battle.execute_move(DirectionOfMovement::Right);
     });
-
-    // Verify the expected outcome
     assert_eq!(battle.state, BattleState::Waiting);
     assert_eq!(battle.steps, 1);
-    // Add more assertions based on your specific logic
 }
