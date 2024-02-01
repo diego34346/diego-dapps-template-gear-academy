@@ -4,8 +4,8 @@
 use codec::{Decode, Encode};
 #[allow(unused_imports)]
 use gstd::{exec, msg, prelude::*, ActorId};
-use tamagotchi_shop_io::*;
 use store_io::*;
+use tamagotchi_shop_io::*;
 
 pub const HUNGER_PER_BLOCK: u64 = 1;
 pub const BOREDOM_PER_BLOCK: u64 = 2;
@@ -120,11 +120,10 @@ async fn handle() {
         TmgAction::ApproveTokens { account, amount } => {
             tmg.approve_tokens(account, amount);
         }
-        TmgAction::BuyAttribute { store_id, attribute_id } => {
-            // Aquí debes implementar la lógica para comprar el atributo
-            // Puedes utilizar la información del contrato store_io para realizar la transacción
-            
-            // Por ejemplo, podrías enviar un mensaje al contrato store_io con la acción correspondiente
+        TmgAction::BuyAttribute {
+            store_id,
+            attribute_id,
+        } => {
             let result = msg::send_for_reply_as::<_, StoreEvent>(
                 store_id,
                 StoreAction::BuyAttribute { attribute_id },
@@ -134,29 +133,23 @@ async fn handle() {
             .expect("Error al enviar mensaje `StoreAction::BuyAttribute`")
             .await
             .expect("Error al decodificar 'StoreEvent'");
-    
-            // Procesar el resultado de la transacción
+
             match result {
                 StoreEvent::AttributeSold { success } => {
                     if success {
-                        // La compra fue exitosa, puedes realizar acciones adicionales si es necesario
                         msg::reply(TmgEvent::AttributeBought(attribute_id), 0)
                             .expect("Error al enviar respuesta `TmgEvent::AttributeBought`");
                     } else {
-                        // La compra falló, puedes manejar esto de acuerdo a tus necesidades
                         msg::reply(TmgEvent::ErrorDuringPurchase, 0)
                             .expect("Error al enviar respuesta `TmgEvent::ErrorDuringPurchase`");
                     }
                 }
-                // Otros casos de eventos del contrato store_io
                 _ => {
-                    // Manejar otros eventos si es necesario
                     msg::reply(TmgEvent::ErrorDuringPurchase, 0)
                         .expect("Error al enviar respuesta `TmgEvent::ErrorDuringPurchase`");
                 }
             }
         }
-        
     }
 }
 
