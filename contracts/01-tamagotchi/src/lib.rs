@@ -1,5 +1,5 @@
 #![no_std]
-use gstd::{msg, prelude::*, exec};
+use gstd::{exec, msg, prelude::*};
 use tamagotchi_io::*;
 
 static mut TAMAGOTCHI: Option<Tamagotchi> = None;
@@ -9,10 +9,7 @@ extern fn init() {
     let name: String = msg::load().expect("Failed to decode Tamagotchi name");
     let age = exec::block_timestamp();
 
-    let tmg = Tamagotchi {
-        name, 
-        age,
-    };
+    let tmg = Tamagotchi { name, age };
 
     unsafe {
         TAMAGOTCHI = Some(tmg);
@@ -20,7 +17,7 @@ extern fn init() {
 }
 
 #[no_mangle]
-extern "C" fn handle() {
+extern fn handle() {
     let action: TmgAction = msg::load().expect("Unable to decode `TmgAction`");
     let tmg = unsafe { TAMAGOTCHI.get_or_insert(Default::default()) };
     match action {
@@ -30,15 +27,13 @@ extern "C" fn handle() {
         }
         TmgAction::Age => {
             let age = exec::block_timestamp() - tmg.age;
-            msg::reply(TmgEvent::Age(age), 0)
-                .expect("Error in a reply `TmgEvent::Age`");
+            msg::reply(TmgEvent::Age(age), 0).expect("Error in a reply `TmgEvent::Age`");
         }
         TmgAction::Feed => {
             // Implementa la lógica para alimentar al Tamagotchi
             tmg.fed += FILL_PER_FEED;
             tmg.fed_block = exec::block_height();
-            msg::reply(TmgEvent::Fed, 0)
-                .expect("Error al responder `TmgEvent::Fed`");
+            msg::reply(TmgEvent::Fed, 0).expect("Error al responder `TmgEvent::Fed`");
         }
         TmgAction::Entertain => {
             // Implementa la lógica para entretener al Tamagotchi
@@ -51,8 +46,7 @@ extern "C" fn handle() {
             // Implementa la lógica para hacer dormir al Tamagotchi
             tmg.slept += FILL_PER_SLEEP;
             tmg.slept_block = exec::block_height();
-            msg::reply(TmgEvent::Slept, 0)
-                .expect("Error al responder `TmgEvent::Slept`");
+            msg::reply(TmgEvent::Slept, 0).expect("Error al responder `TmgEvent::Slept`");
         }
     };
 }
@@ -75,7 +69,9 @@ fn calculate_levels(tmg: &mut Tamagotchi) {
 
     //entertained
     let boredom_blocks = current_block - tmg.entertained_block;
-    tmg.entertained = tmg.entertained.saturating_sub(boredom_blocks * BOREDOM_PER_BLOCK);
+    tmg.entertained = tmg
+        .entertained
+        .saturating_sub(boredom_blocks * BOREDOM_PER_BLOCK);
 
     // slept
     let energy_blocks = current_block - tmg.slept_block;

@@ -1,15 +1,19 @@
 #![no_std]
 
 use codec::{Decode, Encode};
-use gmeta::{Metadata, In, InOut, Out};
-use gstd::{prelude::*, ActorId, exec::{block_height, self}};
+use gmeta::{In, InOut, Metadata, Out};
+use gstd::{
+    exec::{self, block_height},
+    prelude::*,
+    ActorId,
+};
 use scale_info::TypeInfo;
 
 #[derive(Default, Encode, Decode, TypeInfo)]
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub struct Tamagotchi {
-    pub name: String, 
+    pub name: String,
     pub age: u64,
     pub owner: ActorId,
     pub fed: u64,
@@ -27,7 +31,6 @@ const FILL_PER_FEED: u64 = 1000;
 const FILL_PER_ENTERTAINMENT: u64 = 1000;
 const FILL_PER_SLEEP: u64 = 1000;
 
-
 impl Tamagotchi {
     // ...
 
@@ -37,13 +40,19 @@ impl Tamagotchi {
         let blocks_since_last_update = (block_height() as u64) - self.fed_block;
 
         // Update the feeding level
-        self.fed = self.fed.saturating_sub(blocks_since_last_update * HUNGER_PER_BLOCK);
+        self.fed = self
+            .fed
+            .saturating_sub(blocks_since_last_update * HUNGER_PER_BLOCK);
 
         // Update the entertainment level
-        self.entertained = self.entertained.saturating_sub(blocks_since_last_update * BOREDOM_PER_BLOCK);
+        self.entertained = self
+            .entertained
+            .saturating_sub(blocks_since_last_update * BOREDOM_PER_BLOCK);
 
         // Update the sleep level
-        self.slept = self.slept.saturating_sub(blocks_since_last_update * ENERGY_PER_BLOCK);
+        self.slept = self
+            .slept
+            .saturating_sub(blocks_since_last_update * ENERGY_PER_BLOCK);
 
         // Update the corresponding blocks
         self.fed_block = block_height() as u64;
@@ -84,7 +93,7 @@ impl Tamagotchi {
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum TmgAction {
-    Name, 
+    Name,
     Age,
     Feed,
     Entertain,
@@ -95,7 +104,7 @@ pub enum TmgAction {
 #[codec(crate = gstd::codec)]
 #[scale_info(crate = gstd::scale_info)]
 pub enum TmgEvent {
-    Name(String), 
+    Name(String),
     Age(u64),
     Fed,
     Entertained,

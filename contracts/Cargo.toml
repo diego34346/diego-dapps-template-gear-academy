@@ -47,6 +47,7 @@ tamagotchi-store-io.path = "07-tamagotchi-st-new/io"
 
 
 tokio = "1"
+# tokio = { version = "1", features = ["full"] }
 
 # External binaries
 
