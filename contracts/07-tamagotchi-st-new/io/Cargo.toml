@@ -1,11 +1,10 @@
 [package]
-name = "tamagotchi-auto-io"
+name = "tamagotchi-store-io"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
 
 [dependencies]
-gmeta.workspace = true
 gstd.workspace = true
+gmeta.workspace = true
 sharded-fungible-token-io.workspace = true
-store-io.workspace = true

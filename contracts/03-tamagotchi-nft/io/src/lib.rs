@@ -63,4 +63,34 @@ impl Metadata for ProgramMetadata {
     type Reply = ();
     type Others = ();
     type Signal = ();
+    type Handle = InOut<TmgAction, TmgEvent>;
+    type State = Out<Tamagotchi>;
+}
+
+pub fn blocks_height() -> u64 {
+    exec::block_height() as u64
+}
+
+pub fn updated_field_value(
+    field: u64,
+    field_block: u64,
+    value_per_block: u64,
+    blocks_height: u64,
+) -> u64 {
+    let total_value_to_rest = (blocks_height - field_block) * value_per_block;
+    if field >= total_value_to_rest {
+        // If the given value of the tamagotchi is greater than the value to be
+        // subtracted after a certain number of blocks, the update value is
+        // returned
+        field - total_value_to_rest
+    } else {
+        // If not, the given value is smaller, causing a negative result, one
+        // is returned instead.
+        1
+    }
+}
+
+pub fn update_field(field: u64, increase_value: u64) -> u64 {
+    let field = field + increase_value;
+    field.min(10_000)
 }

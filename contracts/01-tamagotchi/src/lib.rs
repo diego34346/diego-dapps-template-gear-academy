@@ -1,4 +1,6 @@
 #![no_std]
+use gstd::{msg, prelude::*, exec};
+use tamagotchi_io::*;
 
 #[allow(unused_imports)]
 use gstd::{exec, msg, prelude::*};
